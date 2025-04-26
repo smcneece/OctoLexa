@@ -1,0 +1,130 @@
+
+blueprint:
+  name: Octolexa – OctoPrint Alexa + Notifications
+  description: >
+    Sends Alexa, mobile, and persistent notifications based on OctoPrint printer job state changes.
+    Automatically generates friendly printer names from sensor IDs.
+  domain: automation
+  input:
+    printer_state_sensors:
+      name: Printer State Sensors
+      description: List of OctoPrint printer state sensors to monitor.
+      default:
+        - sensor.chiron_right_current_state
+      selector:
+        entity:
+          multiple: true
+          filter:
+            domain: sensor
+    enable_alexa_notifications:
+      name: Enable Alexa Notifications
+      description: Toggle Alexa announcements on or off.
+      default: true
+      selector:
+        boolean:
+    alexa_notify_service:
+      name: Alexa Notify Service
+      description: Alexa notify service (e.g., notify.alexa_media_echoclockdot).
+      default: notify.alexa_media_echoclockdot
+      selector:
+        text:
+    alexa_start_time:
+      name: Alexa Notifications Start Time
+      description: Earliest time Alexa is allowed to speak.
+      default: "09:00:00"
+      selector:
+        time:
+    alexa_end_time:
+      name: Alexa Notifications End Time
+      description: Latest time Alexa will speak notifications.
+      default: "22:00:00"
+      selector:
+        time:
+    enable_persistent_notifications:
+      name: Enable Persistent Notifications
+      description: Toggle to also send persistent UI notifications.
+      default: true
+      selector:
+        boolean:
+    enable_mobile_notifications:
+      name: Enable Mobile Notifications
+      description: Toggle to send notifications to a mobile device.
+      default: true
+      selector:
+        boolean:
+    mobile_notify_service:
+      name: Mobile Notify Service
+      description: Mobile notify service.
+      default: notify.mobile_app_shawn_cell
+      selector:
+        text:
+
+trigger:
+  - platform: state
+    entity_id: !input printer_state_sensors
+
+condition:
+  - condition: template
+    value_template: >
+      {{ trigger.to_state.state not in ['unknown', 'unavailable'] }}
+
+variables:
+  alexa_enabled: !input enable_alexa_notifications
+  alexa_service: !input alexa_notify_service
+  alexa_start: !input alexa_start_time
+  alexa_end: !input alexa_end_time
+  enable_persistent: !input enable_persistent_notifications
+  mobile_enabled: !input enable_mobile_notifications
+  mobile_service: !input mobile_notify_service
+  friendly_name: >-
+    {% set eid = trigger.entity_id.split('.')[-1] %}
+    {% set name = eid.replace('_current_state','').replace('_',' ') %}
+    {{ name.title() }}
+  now_time_friendly: "{{ now().strftime('%I:%M %p') }}"
+  notification_message_base: >-
+    {% if trigger.to_state.state == 'Printing' and trigger.from_state.state != 'Paused' %}
+      Print job started on {{ friendly_name }}.
+    {% elif trigger.from_state.state == 'Paused' and trigger.to_state.state == 'Printing' %}
+      Print job resumed on {{ friendly_name }}.
+    {% elif trigger.to_state.state == 'Paused' %}
+      Print job paused on {{ friendly_name }}.
+    {% elif trigger.from_state.state == 'Printing' and trigger.to_state.state == 'Operational' %}
+      Print job completed successfully on {{ friendly_name }}.
+    {% elif trigger.from_state.state == 'Printing' and trigger.to_state.state == 'Error' %}
+      Print job failed on {{ friendly_name }}! State is now Error.
+    {% else %}
+      {{ friendly_name }} changed state: {{ trigger.from_state.state }} → {{ trigger.to_state.state }}.
+    {% endif %}
+  notification_message_with_time: "{{ notification_message_base }} @ {{ now_time_friendly }}"
+
+action:
+  - variables:
+      now_time: "{{ now().strftime('%H:%M:%S') }}"
+  - if:
+      - condition: template
+        value_template: "{{ alexa_enabled and (alexa_start <= now_time < alexa_end) }}"
+    then:
+      - service: "{{ alexa_service }}"
+        data:
+          message: "{{ notification_message_base }}"
+          data:
+            type: announce
+            method: all
+  - if:
+      - condition: template
+        value_template: "{{ mobile_enabled }}"
+    then:
+      - service: "{{ mobile_service }}"
+        data:
+          message: "{{ notification_message_with_time }}"
+  - if:
+      - condition: template
+        value_template: "{{ enable_persistent }}"
+    then:
+      - service: persistent_notification.create
+        data:
+          title: "3D Printer Notification: {{ friendly_name }}"
+          message: "{{ notification_message_with_time }}"
+
+mode: queued
+max: 10
