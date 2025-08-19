@@ -1,7 +1,7 @@
 
 # OctoLexa – OctoPrint Status Notifications via Alexa, Mobile, and Persistent Alerts
 
-# CAUTION RECENT UPDATE TO HA/OCTOPRIN TINTEGRATION DOESN'T ALLOW RENAMING ENTITIES PROPERLY ANY MORE. See: https://github.com/home-assistant/core/issues/146805 - It can be done manually, but that's a pain!
+# CAUTION RECENT UPDATE TO HA/OCTOPRINT INTEGRATION DOESN'T ALLOW RENAMING ENTITIES PROPERLY ANY MORE. See: https://github.com/home-assistant/core/issues/146805 - It can be done manually, but that's a pain!
 
 
 ## 📋 Overview
