@@ -1,7 +1,8 @@
 
-# OctoLexa – Home Assistant OctoPrint Status Notifications via Alexa, Mobile, and Persistent Alerts
+# OctoLexa – OctoPrint Status Notifications via Alexa, Mobile, and Persistent Alerts
 
----
+# CAUTION RECENT UPDATE TO HA/OCTOPRIN TINTEGRATION DOESN'T ALLOW RENAMING ENTITIES PROPERLY ANY MORE. See: https://github.com/home-assistant/core/issues/146805 - It can be done manually, but that's a pain!
+
 
 ## 📋 Overview
 **OctoLexa** sends real-time print status notifications from your OctoPrint-connected 3D printers to Alexa, your mobile devices, and Home Assistant's UI.  
@@ -30,7 +31,7 @@ Designed to be lightweight, fast, and easy to configure.
 ---
 
 ## 🛠️ Setup Instructions
-1.  [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/smcneece/OctoLexa/main/blueprints/automation/smcneece/hoctolexa.yaml)
+1. [Import the OctoLexa Blueprint](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/smcneece/OctoLexa/main/blueprints/automation/smcneece/octolexa.yaml).
 2. Create a new automation based on the blueprint.
 3. Fill out the required fields:
    - **Printer State Sensor**: Select your OctoPrint state sensor (example: `sensor.chiron_right_current_state`).
